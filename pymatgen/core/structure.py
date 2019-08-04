@@ -1939,6 +1939,10 @@ class IStructure(SiteCollection, MSONable):
             from pymatgen.io.prismatic import Prismatic
             s = Prismatic(self).to_string()
             return s
+        elif fmt == 'aims' or fnmatch(fname.lower(), "*.in"):
+            from pymatgen.io.fhiaims.inputs import Control
+            s = Control(self).write_file(fname)
+            return s
         else:
             import ruamel.yaml as yaml
             if filename:
@@ -1978,6 +1982,7 @@ class IStructure(SiteCollection, MSONable):
         from pymatgen.io.cssr import Cssr
         from pymatgen.io.xcrysden import XSF
         from pymatgen.io.atat import Mcsqs
+        from pymatgen.io.fhiaims import Control
         fmt = fmt.lower()
         if fmt == "cif":
             parser = CifParser.from_string(input_string)
@@ -1999,6 +2004,8 @@ class IStructure(SiteCollection, MSONable):
             s = XSF.from_string(input_string).structure
         elif fmt == "mcsqs":
             s = Mcsqs.structure_from_string(input_string)
+        elif fmt == 'aims':
+            s = Control.from_string(input_string)
         else:
             raise ValueError("Unrecognized format `%s`!" % fmt)
 
@@ -2083,6 +2090,9 @@ class IStructure(SiteCollection, MSONable):
                                 merge_tol=merge_tol)
         elif fnmatch(fname, "CTRL*"):
             return LMTOCtrl.from_file(filename=filename).structure
+        elif fnmatch(fname.lower(), "*.in"):
+            return cls.from_str(contents, fmt="aims")
+
         else:
             raise ValueError("Unrecognized file extension!")
         if sort:
@@ -2564,8 +2574,7 @@ class IMolecule(SiteCollection, MSONable):
         elif any([fmt == r or fnmatch(fname.lower(), "*.{}*".format(r))
                   for r in ["gjf", "g03", "g09", "com", "inp"]]):
             writer = GaussianInput(self)
-        elif fmt == "json" or fnmatch(fname, "*.json*") or fnmatch(fname,
-                                                                   "*.mson*"):
+        elif fmt == "json" or fnmatch(fname, "*.json*") or fnmatch(fname, "*.mson*"):
             if filename:
                 with zopen(filename, "wt", encoding='utf8') as f:
                     return json.dump(self.as_dict(), f)
@@ -2579,6 +2588,10 @@ class IMolecule(SiteCollection, MSONable):
                     return yaml.safe_dump(self.as_dict(), f)
             else:
                 return yaml.safe_dump(self.as_dict())
+        elif fnmatch(fname, '*.in'):
+            from pymatgen.io.fhiaims.inputs import Control
+            s = Control(self).write_file(fname)
+            return s
 
         else:
             m = re.search(r"\.(pdb|mol|mdl|sdf|sd|ml2|sy2|mol2|cml|mrv)",
@@ -2622,6 +2635,10 @@ class IMolecule(SiteCollection, MSONable):
             import ruamel.yaml as yaml
             d = yaml.safe_load(input_string)
             return cls.from_dict(d)
+        elif fmt == 'aims':
+            from pymatgen.io.fhiaims.inputs import Control
+            return Control.from_string(input_string)
+
         else:
             from pymatgen.io.babel import BabelMolAdaptor
             m = BabelMolAdaptor.from_string(input_string,
@@ -2660,6 +2677,9 @@ class IMolecule(SiteCollection, MSONable):
             return cls.from_str(contents, fmt="json")
         elif fnmatch(fname, "*.yaml*"):
             return cls.from_str(contents, fmt="yaml")
+        elif fnmatch(fname.lower(), "*.in"):
+            return cls.from_str(contents, fmt="aims")
+
         else:
             from pymatgen.io.babel import BabelMolAdaptor
             m = re.search(r"\.(pdb|mol|mdl|sdf|sd|ml2|sy2|mol2|cml|mrv)",
