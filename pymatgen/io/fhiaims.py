@@ -46,7 +46,7 @@ files.
 __author__ = "Shyue Ping Ong, Geoffroy Hautier, Rickard Armiento, " + \
              "Vincent L Chevrier, Stephen Dacek"
 __copyright__ = "Copyright 2011, The Materials Project"
-__version__ = "1.1"
+__version__ = "0.1"
 __maintainer__ = "Shyue Ping Ong"
 __email__ = "shyuep@gmail.com"
 __status__ = "Production"
@@ -103,13 +103,13 @@ class Control(MSONable):
     .. attribute:: predictor_corrector
 
         Predictor corrector coordinates and derivatives for each site; i.e.
-        a list of three 1x3 arrays for each site (typically read in from a MD 
+        a list of three 1x3 arrays for each site (typically read in from a MD
         CONTCAR).
 
     .. attribute:: predictor_corrector_preamble
 
         Predictor corrector preamble contains the predictor-corrector key,
-        POTIM, and thermostat parameters that precede the site-specic predictor 
+        POTIM, and thermostat parameters that precede the site-specic predictor
         corrector data in MD CONTCAR
 
     .. attribute:: temperature

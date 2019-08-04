@@ -1940,7 +1940,7 @@ class IStructure(SiteCollection, MSONable):
             s = Prismatic(self).to_string()
             return s
         elif fmt == 'aims' or fnmatch(fname.lower(), "*.in"):
-            from pymatgen.io.fhiaims.inputs import Control
+            from pymatgen.io.fhiaims import Control
             s = Control(self).write_file(fname)
             return s
         else:
@@ -2589,7 +2589,7 @@ class IMolecule(SiteCollection, MSONable):
             else:
                 return yaml.safe_dump(self.as_dict())
         elif fnmatch(fname, '*.in'):
-            from pymatgen.io.fhiaims.inputs import Control
+            from pymatgen.io.fhiaims import Control
             s = Control(self).write_file(fname)
             return s
 
@@ -2636,7 +2636,7 @@ class IMolecule(SiteCollection, MSONable):
             d = yaml.safe_load(input_string)
             return cls.from_dict(d)
         elif fmt == 'aims':
-            from pymatgen.io.fhiaims.inputs import Control
+            from pymatgen.io.fhiaims import Control
             return Control.from_string(input_string)
 
         else:
