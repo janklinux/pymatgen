@@ -117,12 +117,18 @@ class Control(MSONable):
                 atom.append([float(x) for x in ch.split()[1:4]])
                 name.append(ch.split()[4])
 
-        lattice = Lattice(lat) if is_periodic else np.array([[150, 0, 0],
-                                                             [0, 150, 0],
-                                                             [0, 0, 150]])
-        return Structure(lattice=lattice, species=[Element(e) for e in name],
-                         coords=[np.array(v) for v in atom], validate_proximity=True,
-                         to_unit_cell=False, coords_are_cartesian=not is_fractional)
+        if is_periodic:
+            lattice = Lattice(lat)
+            return Structure(lattice=lattice, species=[Element(e) for e in name],
+                             coords=[np.array(v) for v in atom], validate_proximity=True,
+                             to_unit_cell=True, coords_are_cartesian=not is_fractional)
+        else:
+            lattice = Lattice(np.array([[150, 0, 0],
+                                        [0, 150, 0],
+                                        [0, 0, 150]]))
+            return Structure(lattice=lattice, species=[Element(e) for e in name],
+                             coords=[np.array(v) for v in atom], validate_proximity=True,
+                             to_unit_cell=False, coords_are_cartesian=not is_fractional)
 
     def get_string(self):
         """
