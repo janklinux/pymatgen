@@ -207,7 +207,7 @@ class DefectCompatibility(MSONable):
         else:
             try:
                 defect_entry = self.perform_kumagai( defect_entry)
-            except:
+            except Exception:
                 logger.info("Kumagai correction error occured! Wont perform correction.")
 
         # add potalign based on preferred correction setting if it does not already exist in defect entry
@@ -235,8 +235,8 @@ class DefectCompatibility(MSONable):
         run_bandfilling = True if len( set(defect_entry.parameters.keys()).intersection(required_bandfilling_params)) \
                                 == len(required_bandfilling_params) else False
         if run_bandfilling:
-            if (defect_entry.parameters['vbm'] == None) or (defect_entry.parameters['cbm'] == None) \
-                    or (defect_entry.parameters['potalign'] == None):
+            if (defect_entry.parameters['vbm'] is None) or (defect_entry.parameters['cbm'] is None) \
+                    or (defect_entry.parameters['potalign'] is None):
                 run_bandfilling = False
 
         if not run_bandfilling:

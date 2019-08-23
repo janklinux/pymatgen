@@ -12,7 +12,7 @@ from monty.dev import requires
 try:
     import openbabel as ob
     import pybel as pb
-except:
+except Exception:
     pb = None
     ob = None
 
@@ -202,6 +202,7 @@ class BabelMolAdaptor:
         """
         A combined method to first generate 3D structures from 0D or 2D
         structures and then find the minimum energy conformer:
+        
         1. Use OBBuilder to create a 3D structure using rules and ring templates
         2. Do 250 steps of a steepest descent geometry optimization with the
            MMFF94 forcefield
