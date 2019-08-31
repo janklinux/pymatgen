@@ -193,29 +193,10 @@ class GulpIO:
         Returns:
             GULP input string specifying library option
         """
-        gulplib_set = lambda: 'GULP_LIB' in os.environ.keys()
-        readable = lambda f: os.path.isfile(f) and os.access(f, os.R_OK)
+        gulplib_set = 'GULP_LIB' in os.environ.keys()
 
-        # dirpath, fname = os.path.split(file_name)
-        # if dirpath:  # Full path specified
-        #    if readable(file_name):
-        #        gin = 'library ' + file_name
-        #    else:
-        #        raise GulpError('GULP Library not found')
-        # else:
-        #    fpath = os.path.join(os.getcwd(), file_name)  # Check current dir
-        #    if readable(fpath):
-        #        gin = 'library ' + fpath
-        #    elif gulplib_set():
-        #        fpath = os.path.join(os.environ['GULP_LIB'], file_name)
-        #        if readable(fpath):
-        #            gin = 'library ' + file_name
-        #        else:
-        #            raise GulpError('GULP Library not found')
-        #    else:
-        #        raise GulpError('GULP Library not found')
-        # gin += "\n"
-        # return gin
+        def readable(f):
+            return os.path.isfile(f) and os.access(f, os.R_OK)
 
         gin = ""
         dirpath, fname = os.path.split(file_name)
@@ -225,7 +206,7 @@ class GulpIO:
             fpath = os.path.join(os.getcwd(), file_name)  # Check current dir
             if readable(fpath):
                 gin = 'library ' + fpath
-            elif gulplib_set():  # Check the GULP_LIB path
+            elif gulplib_set:  # Check the GULP_LIB path
                 fpath = os.path.join(os.environ['GULP_LIB'], file_name)
                 if readable(fpath):
                     gin = 'library ' + file_name
@@ -689,8 +670,7 @@ class BuckinghamPotential:
                         else:
                             metal = elmnt.split('_')[0]
                             # oxi_state = metaloxi.split('_')[1][0]
-                            species_dict[elmnt] = metal + " core " + \
-                                                  row.split()[2] + "\n"
+                            species_dict[elmnt] = metal + " core " + row.split()[2] + "\n"
                     continue
 
                 if pot_flg:
