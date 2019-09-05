@@ -19,8 +19,9 @@ from pymatgen.transformations.advanced_transformations import \
     DopingTransformation, _find_codopant, SlabTransformation, \
     MagOrderParameterConstraint, DisorderOrderedTransformation, \
     GrainBoundaryTransformation, CubicSupercellTransformation, \
-    PerturbSitesTransformation, AddAdsorbateTransformation, \
-    SubstituteSurfaceSiteTransformation
+    AddAdsorbateTransformation, SubstituteSurfaceSiteTransformation, \
+    SQSTransformation
+
 from monty.os.path import which
 from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.io.cif import CifParser
@@ -29,6 +30,8 @@ from pymatgen.analysis.energy_models import IsingModel
 from pymatgen.analysis.gb.grain import GrainBoundaryGenerator
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.core.surface import SlabGenerator
+from pymatgen.io import atat
+
 """
 Created on Jul 24, 2012
 """
@@ -62,6 +65,7 @@ def get_table():
 
 enum_cmd = which('enum.x') or which('multienum.x')
 makestr_cmd = which('makestr.x') or which('makeStr.x') or which('makeStr.py')
+mcsqs_cmd = which('mcsqs')
 enumlib_present = enum_cmd and makestr_cmd
 
 
@@ -616,14 +620,39 @@ class DisorderedOrderedTransformationTest(PymatgenTest):
         self.assertDictEqual(output[-1].species.as_dict(),
                              {'Ni': 0.5, 'Ba': 0.5})
 
+@unittest.skipIf(not mcsqs_cmd, "mcsqs not present.")
+class SQSTransformationTest(PymatgenTest):
+
+    def test_apply_transformation(self):
+
+        # non-sensical example just for testing purposes
+        self.pztstrings = np.load(os.path.join(test_dir, "mcsqs/pztstrings.npy"), allow_pickle=True)
+        self.struct = self.get_structure('Pb2TiZrO6')
+
+        trans = SQSTransformation({2:6, 3:4}, supercell = [2,1,1], total_atoms = None, search_time = 0.01)
+        struct = self.struct.copy()
+        struct.replace_species({'Ti': {'Ti':0.5, 'Zr':0.5 }, 'Zr': {'Ti':0.5, 'Zr':0.5}})
+        sqs = trans.apply_transformation(struct)
+        self.assertEqual(atat.Mcsqs(sqs).to_string() in self.pztstrings, True)
+        os.remove('sqscell.out')
+        os.remove('rndstrgrp.out')
+        os.remove('bestcorr.out')
+        os.remove('rndstr.in')
+        os.remove('sym.out')
+        os.remove('mcsqs.log')
+        os.remove('bestsqs.out')
+        os.remove('clusters.out')
+
 class CubicSupercellTransformationTest(PymatgenTest):
 
     def test_apply_transformation(self):
 
         structure = self.get_structure('TlBiSe2')
-        min_atoms = 150
+        min_atoms = 100
         max_atoms = 1000
         num_nn_dists = 5
+
+        # Test the transformation without constraining trans_mat to be diagonal
         supercell_generator = CubicSupercellTransformation(min_atoms=min_atoms,
                                                            max_atoms=max_atoms,
                                                            num_nn_dists=num_nn_dists)
@@ -641,41 +670,26 @@ class CubicSupercellTransformationTest(PymatgenTest):
         self.assertArrayAlmostEqual(superstructure.lattice.matrix[2],
                                     [3.69130000e-02, 4.09320200e-02, 5.90830153e+01])
         self.assertEqual(superstructure.num_sites, 448)
+        self.assertArrayEqual(supercell_generator.trans_mat,
+                              np.array([[4, 0, 0],
+                                        [1, 4, -4],
+                                        [0, 0, 1]]))
 
-
-class PerturbSitesTransformationTest(PymatgenTest):
-
-    def test_apply_transformation(self):
-
-        max_displacement = 0.05
-        min_displacement = 0.01
-        num_displacements = 2
-        structures_per_displacement_val = 2
-
-        structure = self.get_structure('TlBiSe2')
-
-        perturb_transformer = PerturbSitesTransformation(max_disp=max_displacement,
-                                                         min_disp=min_displacement,
-                                                         num_disps=num_displacements,
-                                                         structures_per_displacement_distance=structures_per_displacement_val)
-        random_structures = [d['structure'] for d in perturb_transformer.apply_transformation(structure)]
-        disps = [d['displacement'] for d in perturb_transformer.apply_transformation(structure)]
-        min_rand_dists = [d['min_random_distance'] for d in perturb_transformer.apply_transformation(structure)]
-        num_random_structures = len(random_structures)
-        self.assertEqual(num_random_structures, num_displacements*structures_per_displacement_val)
-        self.assertArrayEqual(disps, [0.01, 0.01, 0.05, 0.05])
-        self.assertArrayEqual(min_rand_dists, [None]*4)
-
-        nsites = structure.num_sites
-        random_sites_idxs = np.random.randint(0, nsites, size=round(nsites / 2))
-        original_sites = structure._sites
-        new_sites1 = random_structures[0]._sites
-        new_sites2 = random_structures[-1]._sites
-        for random_site_idx in random_sites_idxs:
-            self.assertAlmostEqual(original_sites[random_site_idx].distance(new_sites1[random_site_idx]),
-                             min_displacement)
-            self.assertAlmostEqual(original_sites[random_site_idx].distance(new_sites2[random_site_idx]),
-                             max_displacement)
+        # Test the diagonal transformation
+        structure2 = self.get_structure('Si')
+        sga = SpacegroupAnalyzer(structure2)
+        structure2 = sga.get_primitive_standard_structure()
+        structure2.to("poscar", filename="POSCAR-orig_si")
+        diagonal_supercell_generator = CubicSupercellTransformation(min_atoms=min_atoms,
+                                                                    max_atoms=max_atoms,
+                                                                    num_nn_dists=num_nn_dists,
+                                                                    force_diagonal_transformation=True)
+        superstructure2 = diagonal_supercell_generator.apply_transformation(structure2)
+        superstructure2.to("poscar", filename="POSCAR-diag_si")
+        self.assertArrayEqual(diagonal_supercell_generator.trans_mat,
+                              np.array([[4, 0, 0],
+                                        [0, 4, 0],
+                                        [0, 0, 4]]))
 
 
 class AddAdsorbateTransformationTest(PymatgenTest):
