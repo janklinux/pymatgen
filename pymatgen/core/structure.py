@@ -2,6 +2,10 @@
 # Copyright (c) Pymatgen Development Team.
 # Distributed under the terms of the MIT License.
 
+"""
+This module provides classes used to define a non-periodic molecule and a
+periodic structure.
+"""
 
 import math
 import os
@@ -33,11 +37,6 @@ from pymatgen.util.coord import get_angle, all_distances, \
 from pymatgen.core.units import Mass, Length
 
 from monty.io import zopen
-
-"""
-This module provides classes used to define a non-periodic molecule and a
-periodic structure.
-"""
 
 __author__ = "Shyue Ping Ong"
 __copyright__ = "Copyright 2011, The Materials Project"
@@ -393,7 +392,7 @@ class SiteCollection(collections.abc.Sequence, metaclass=ABCMeta):
                 for el, occu in site.species.items():
                     sym = el.symbol
                     new_sp[Specie(sym, oxidation_states[sym])] = occu
-                site.species = new_sp
+                site.species = Composition(new_sp)
         except KeyError:
             raise ValueError("Oxidation state of all elements must be "
                              "specified in the dictionary.")
@@ -414,7 +413,7 @@ class SiteCollection(collections.abc.Sequence, metaclass=ABCMeta):
             for el, occu in site.species.items():
                 sym = el.symbol
                 new_sp[Specie(sym, ox)] = occu
-            site.species = new_sp
+            site.species = Composition(new_sp)
 
     def remove_oxidation_states(self):
         """
@@ -425,7 +424,7 @@ class SiteCollection(collections.abc.Sequence, metaclass=ABCMeta):
             for el, occu in site.species.items():
                 sym = el.symbol
                 new_sp[Element(sym)] += occu
-            site.species = new_sp
+            site.species = Composition(new_sp)
 
     def add_oxidation_state_by_guess(self, **kwargs):
         """
@@ -454,7 +453,7 @@ class SiteCollection(collections.abc.Sequence, metaclass=ABCMeta):
                 oxi_state = getattr(sp, "oxi_state", None)
                 new_sp[Specie(sym, oxidation_state=oxi_state,
                               properties={'spin': spins.get(str(sp), spins.get(sym, None))})] = occu
-            site.species = new_sp
+            site.species = Composition(new_sp)
 
     def add_spin_by_site(self, spins: List[float]):
         """
@@ -475,7 +474,7 @@ class SiteCollection(collections.abc.Sequence, metaclass=ABCMeta):
                 oxi_state = getattr(sp, "oxi_state", None)
                 new_sp[Specie(sym, oxidation_state=oxi_state,
                               properties={'spin': spin})] = occu
-            site.species = new_sp
+            site.species = Composition(new_sp)
 
     def remove_spin(self):
         """
@@ -489,12 +488,12 @@ class SiteCollection(collections.abc.Sequence, metaclass=ABCMeta):
             site.species = new_sp
 
     def extract_cluster(self, target_sites: List[Site], **kwargs):
-        """
+        r"""
         Extracts a cluster of atoms based on bond lengths
 
         Args:
             target_sites ([Site]): List of initial sites to nucleate cluster.
-            \\*\\*kwargs: kwargs passed through to CovalentBond.is_bonded.
+            **kwargs: kwargs passed through to CovalentBond.is_bonded.
 
         Returns:
             [Site/PeriodicSite] Cluster of atoms.
@@ -740,7 +739,7 @@ class IStructure(SiteCollection, MSONable):
     @classmethod
     def from_magnetic_spacegroup(
             cls,
-            msg: Union[str, 'MagneticSpaceGroup'],
+            msg: Union[str, 'MagneticSpaceGroup'],  # type: ignore
             lattice: Union[List, np.ndarray, Lattice],
             species: Sequence[Union[str, Element, Specie, DummySpecie, Composition]],
             coords: Sequence[Sequence[float]],
@@ -826,8 +825,7 @@ class IStructure(SiteCollection, MSONable):
                 "different!" % (len(species), len(magmoms))
             )
 
-        frac_coords = coords if not coords_are_cartesian else \
-            lattice.get_fractional_coords(coords)
+        frac_coords = coords if not coords_are_cartesian else latt.get_fractional_coords(coords)
 
         all_sp = []  # type: List[Union[str, Element, Specie, DummySpecie, Composition]]
         all_coords = []  # type: List[List[float]]
@@ -1884,7 +1882,7 @@ class IStructure(SiteCollection, MSONable):
         return cls.from_sites(sites, charge=charge)
 
     def to(self, fmt=None, filename=None, **kwargs):
-        """
+        r"""
         Outputs the structure to a file or string.
 
         Args:
@@ -1895,7 +1893,7 @@ class IStructure(SiteCollection, MSONable):
             filename (str): If provided, output will be written to a file. If
                 fmt is not specified, the format is determined from the
                 filename. Defaults is None, i.e. string output.
-            \\*\\*kwargs: Kwargs passthru to relevant methods. E.g., This allows
+            **kwargs: Kwargs passthru to relevant methods. E.g., This allows
                 the passing of parameters like symprec to the
                 CifWriter.__init__ method for generation of symmetric cifs.
 
@@ -2836,6 +2834,9 @@ class Structure(IStructure, collections.abc.MutableSequence):
 
     @property
     def lattice(self):
+        """
+        :return: Lattice assciated with structure.
+        """
         return self._lattice
 
     @lattice.setter
