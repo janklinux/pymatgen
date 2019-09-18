@@ -2596,8 +2596,7 @@ class IMolecule(SiteCollection, MSONable):
 
         if filename:
             writer.write_file(filename)
-        else:
-            return str(writer)
+        return str(writer)
 
     @classmethod
     def from_str(cls, input_string, fmt):
