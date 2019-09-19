@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>pymatgen.entries.post_processors_abc module &#8212; pymatgen 2019.8.23 documentation</title>
+    <title>pymatgen.command_line.mcsqs_caller module &#8212; pymatgen 2019.9.16 documentation</title>
     <link rel="stylesheet" href="_static/proBlue.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -33,7 +33,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pymatgen 2019.8.23 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">pymatgen 2019.9.16 documentation</a> &#187;</li> 
       </ul>
     </div>  
 
@@ -42,50 +42,28 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-pymatgen.entries.post_processors_abc">
-<span id="pymatgen-entries-post-processors-abc-module"></span><h1>pymatgen.entries.post_processors_abc module<a class="headerlink" href="#module-pymatgen.entries.post_processors_abc" title="Permalink to this headline">¶</a></h1>
-<p>This module implements abstract base classes for post-processing entries.
-Any class which modifies entries should inherit these classes.</p>
-<dl class="class">
-<dt id="pymatgen.entries.post_processors_abc.EntryPostProcessor">
-<em class="property">class </em><code class="sig-name descname">EntryPostProcessor</code><a class="reference internal" href="_modules/pymatgen/entries/post_processors_abc.html#EntryPostProcessor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymatgen.entries.post_processors_abc.EntryPostProcessor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="method">
-<dt id="pymatgen.entries.post_processors_abc.EntryPostProcessor.corrected_compound_formulas">
-<em class="property">abstract property </em><code class="sig-name descname">corrected_compound_formulas</code><a class="headerlink" href="#pymatgen.entries.post_processors_abc.EntryPostProcessor.corrected_compound_formulas" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of compound formulas that are corrected.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="pymatgen.entries.post_processors_abc.EntryPostProcessor.process_entries">
-<em class="property">abstract </em><code class="sig-name descname">process_entries</code><span class="sig-paren">(</span><em class="sig-param">entries</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymatgen/entries/post_processors_abc.html#EntryPostProcessor.process_entries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymatgen.entries.post_processors_abc.EntryPostProcessor.process_entries" title="Permalink to this definition">¶</a></dt>
-<dd><p>Process a sequence of entries.</p>
+  <div class="section" id="module-pymatgen.command_line.mcsqs_caller">
+<span id="pymatgen-command-line-mcsqs-caller-module"></span><h1>pymatgen.command_line.mcsqs_caller module<a class="headerlink" href="#module-pymatgen.command_line.mcsqs_caller" title="Permalink to this headline">¶</a></h1>
+<p>Missing module doc.</p>
+<dl class="function">
+<dt id="pymatgen.command_line.mcsqs_caller.run_mcsqs">
+<code class="sig-name descname">run_mcsqs</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">clusters</em>, <em class="sig-param">supercell=None</em>, <em class="sig-param">total_atoms=None</em>, <em class="sig-param">search_time=0.01</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymatgen/command_line/mcsqs_caller.html#run_mcsqs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymatgen.command_line.mcsqs_caller.run_mcsqs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function for calling mcsqs with different arguments</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>entries</strong> – A sequence of ComputedEntries.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clusters</strong> (<em>dict</em>) – dictionary of cluster interactions with entries in the form</p></li>
+<li><p><strong>atoms</strong> (<em>#</em>) – cutoff in angstroms</p></li>
+<li><p><strong>supercell</strong> (<em>list</em>) – dimensions of the supercell in units of the original unit cell</p></li>
+<li><p><strong>total_atoms</strong> (<em>int</em>) – total number of atoms in the final SQS. Choose either</p></li>
+<li><p><strong>OR supercell</strong> (<em>this</em>) – </p></li>
+<li><p><strong>search_time</strong> (<em>int</em>) – The time spent looking for the ideal SQS in minutes</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>An list of processed entries.  ComputedEntries in the original list
-which are not compatible with the processing scheme are excluded.</p>
+<dd class="field-even"><p>Pymatgen structure which is an SQS of the input structure</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="pymatgen.entries.post_processors_abc.EntryPostProcessor.process_entry">
-<em class="property">abstract </em><code class="sig-name descname">process_entry</code><span class="sig-paren">(</span><em class="sig-param">entry</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pymatgen/entries/post_processors_abc.html#EntryPostProcessor.process_entry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pymatgen.entries.post_processors_abc.EntryPostProcessor.process_entry" title="Permalink to this definition">¶</a></dt>
-<dd><p>Process a single entry.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>entry</strong> – An ComputedEntry object.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>An processed entry. None if entry is not compatible within the
-processing scheme.</p>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 </div>
@@ -99,7 +77,7 @@ processing scheme.</p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/pymatgen.entries.post_processors_abc.rst.txt"
+      <li><a href="_sources/pymatgen.command_line.mcsqs_caller.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -126,7 +104,7 @@ processing scheme.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">pymatgen 2019.8.23 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">pymatgen 2019.9.16 documentation</a> &#187;</li> 
       </ul>
     </div>
 
