@@ -105,14 +105,14 @@ class Control(MSONable):
         atom = []
         name = []
         for ch in chunks:
-            if 'lattice_vector' in ch:
+            if 'lattice_vector ' in ch:
                 is_periodic = True
                 lat.append([float(x) for x in ch.split()[1:4]])
-            if 'atom_frac' in ch:
+            if 'atom_frac ' in ch:
                 is_fractional = True
                 atom.append([float(x) for x in ch.split()[1:4]])
                 name.append(ch.split()[4])
-            if 'atom' in ch:
+            if 'atom ' in ch:
                 is_fractional = False
                 atom.append([float(x) for x in ch.split()[1:4]])
                 name.append(ch.split()[4])
