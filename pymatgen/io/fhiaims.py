@@ -70,7 +70,6 @@ class Control(MSONable):
     def inital_moment(self):
         return self.structure.site_properties.get('initial_moment')
 
-
     @selective_dynamics.setter
     def selective_dynamics(self, selective_dynamics):
         self.structure.add_site_property("selective_dynamics",
@@ -150,14 +149,18 @@ class Control(MSONable):
             if const_parsed:
                 constraint.append(tmp_con)
             else:
-                constraint.append(['nutte'])
+                constraint.append([False, False, False])
+            if initm_parsed:
+                init_mom.append(tmp_mom)
+            else:
+                init_mom.append(0.)
 
         print(init_mom)
         print(len(name), len(atom), len(init_mom), len(constraint))
-        quit()
+        # quit()
 
         for a, b, c in zip(name, constraint, init_mom):
-            print(a,b,c)
+            print(a, b, c)
 
         if is_periodic:
             lattice = Lattice(lat)
@@ -184,21 +187,39 @@ class Control(MSONable):
         is_periodic = False if self.structure.lattice == Lattice([[150, 0, 0],
                                                                   [0, 150, 0],
                                                                   [0, 0, 150]]) else True
+
+        if not isinstance(self.selective_dynamics, list):
+            local_dynamics = []
+            for s in self.structure.species:
+                local_dynamics.append([False, False, False])
+        else:
+            local_dynamics = self.selective_dynamics
+
+        if not isinstance(self.inital_moment, list):
+            local_moment = []
+            for s in self.structure.species:
+                if s.name not in ['H', 'O']:
+                    local_moment.append(1.)
+                else:
+                    local_moment.append(0.)
+        else:
+            local_moment = self.inital_moment
+
         out = []
         if is_periodic:
             for l in self.structure.lattice.matrix:
                 out.append('lattice_vector {:6.6f} {:6.6f} {:6.6f}'.format(l[0], l[1], l[2]))
         for c, n, sd, im in zip(self.structure.cart_coords, self.structure.species,
-                                self.selective_dynamics, self.inital_moment):
+                                local_dynamics, local_moment):
             out.append('atom {:6.6f} {:6.6f} {:6.6f} {}'.format(c[0], c[1], c[2], n.name))
-            if not np.all(sd) == True:
+            if not np.all(sd) is True:
                 out.append('  constrain_relaxation .true.')
             else:
-                if not sd[0] == True:
+                if not sd[0] is True:
                     out.append('  constrain_relaxation x')
-                if not sd[1] == True:
+                if not sd[1] is True:
                     out.append('  constrain_relaxation y')
-                if not sd[2] == True:
+                if not sd[2] is True:
                     out.append('  constrain_relaxation z')
             if im != 0:
                 out.append('  initial_moment {:2.2f}'.format(im))
