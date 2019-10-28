@@ -189,9 +189,7 @@ class Control(MSONable):
                                                                   [0, 0, 150]]) else True
 
         if not isinstance(self.selective_dynamics, list):
-            local_dynamics = []
-            for s in self.structure.species:
-                local_dynamics.append([False, False, False])
+            local_dynamics = [[True, True, True] for i in range(len(self.structure.species))]
         else:
             local_dynamics = self.selective_dynamics
 
@@ -212,14 +210,14 @@ class Control(MSONable):
         for c, n, sd, im in zip(self.structure.cart_coords, self.structure.species,
                                 local_dynamics, local_moment):
             out.append('atom {:6.6f} {:6.6f} {:6.6f} {}'.format(c[0], c[1], c[2], n.name))
-            if not np.all(sd) == True:
+            if not np.all(sd):
                 out.append('  constrain_relaxation .true.')
             else:
-                if not sd[0] == True:
+                if not sd[0]:
                     out.append('  constrain_relaxation x')
-                if not sd[1] == True:
+                if not sd[1]:
                     out.append('  constrain_relaxation y')
-                if not sd[2] == True:
+                if not sd[2]:
                     out.append('  constrain_relaxation z')
             if im != 0:
                 out.append('  initial_moment {:2.2f}'.format(im))
