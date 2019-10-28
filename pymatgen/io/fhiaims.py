@@ -212,14 +212,14 @@ class Control(MSONable):
         for c, n, sd, im in zip(self.structure.cart_coords, self.structure.species,
                                 local_dynamics, local_moment):
             out.append('atom {:6.6f} {:6.6f} {:6.6f} {}'.format(c[0], c[1], c[2], n.name))
-            if not np.all(sd) is True:
+            if not np.all(sd) == True:
                 out.append('  constrain_relaxation .true.')
             else:
-                if not sd[0] is True:
+                if not sd[0] == True:
                     out.append('  constrain_relaxation x')
-                if not sd[1] is True:
+                if not sd[1] == True:
                     out.append('  constrain_relaxation y')
-                if not sd[2] is True:
+                if not sd[2] == True:
                     out.append('  constrain_relaxation z')
             if im != 0:
                 out.append('  initial_moment {:2.2f}'.format(im))
