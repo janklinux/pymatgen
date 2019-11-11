@@ -2078,7 +2078,8 @@ class IStructure(SiteCollection, MSONable):
             from pymatgen.io.prismatic import Prismatic
             s = Prismatic(self).to_string()
             return s
-        elif fmt == 'aims' or fnmatch(fname.lower(), "*.in"):
+        elif fmt == 'aims' or fnmatch(fname.lower(), "*.in") \
+                           or fnmatch(fname.lower(), "*.next_step"):
             from pymatgen.io.fhiaims import Control
             s = Control(self).write_file(fname)
             return s
@@ -2229,7 +2230,8 @@ class IStructure(SiteCollection, MSONable):
                                 merge_tol=merge_tol)
         elif fnmatch(fname, "CTRL*"):
             return LMTOCtrl.from_file(filename=filename).structure
-        elif fnmatch(fname.lower(), "*.in"):
+        elif fnmatch(fname.lower(), "*.in") \
+            or fnmatch(fname.lower(), "*.next_step"):
             return cls.from_str(contents, fmt="aims")
 
         else:
@@ -2731,7 +2733,8 @@ class IMolecule(SiteCollection, MSONable):
                     return yaml.safe_dump(self.as_dict(), f)
             else:
                 return yaml.safe_dump(self.as_dict())
-        elif fnmatch(fname, '*.in'):
+        elif fnmatch(fname, '*.in') \
+            or fnmatch(fname.lower(), "*.next_step"):
             from pymatgen.io.fhiaims import Control
             s = Control(self).write_file(fname)
             return s
@@ -2819,7 +2822,7 @@ class IMolecule(SiteCollection, MSONable):
             return cls.from_str(contents, fmt="json")
         if fnmatch(fname, "*.yaml*"):
             return cls.from_str(contents, fmt="yaml")
-        elif fnmatch(fname.lower(), "*.in"):
+        elif fnmatch(fname.lower(), "*.in") or fnmatch(fname.lower(), "*.next_step"):
             return cls.from_str(contents, fmt="aims")
         else:
             from pymatgen.io.babel import BabelMolAdaptor
