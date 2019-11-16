@@ -1,27 +1,3 @@
-# coding: utf-8
-# Copyright (c) Pymatgen Development Team.
-# Distributed under the terms of the MIT License.
-
-
-import os
-import subprocess
-import warnings
-import numpy as np
-import glob
-
-from scipy.spatial import KDTree
-from pymatgen.io.vasp.outputs import Chgcar
-from pymatgen.analysis.graphs import StructureGraph
-from monty.os.path import which
-from monty.dev import requires
-from monty.json import MSONable
-from monty.tempfile import ScratchDir
-from enum import Enum
-
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 """
 This module implements an interface to the critic2 Bader analysis code.
 
@@ -61,6 +37,26 @@ V. Luaña, Comput. Phys. Commun. 180, 157–166 (2009)
 (http://dx.doi.org/10.1016/j.cpc.2008.07.018)
 """
 
+import os
+import subprocess
+import warnings
+import numpy as np
+import glob
+
+from scipy.spatial import KDTree
+from pymatgen.io.vasp.outputs import Chgcar
+from pymatgen.analysis.graphs import StructureGraph
+from pymatgen.core.periodic_table import DummySpecie
+from monty.os.path import which
+from monty.dev import requires
+from monty.json import MSONable
+from monty.tempfile import ScratchDir
+from enum import Enum
+
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 __author__ = "Matthew Horton"
 __maintainer__ = "Matthew Horton"
 __email__ = "mkhorton@lbl.gov"
@@ -69,6 +65,9 @@ __date__ = "July 2017"
 
 
 class Critic2Caller:
+    """
+    Class to call critic2 and store standard output for further processing.
+    """
 
     @requires(which("critic2"), "Critic2Caller requires the executable critic to be in the path. "
                                 "Please follow the instructions at https://github.com/aoterodelaroza/critic2.")
@@ -242,6 +241,9 @@ class Critic2Caller:
 
 
 class CriticalPointType(Enum):
+    """
+    Enum type for the different varieties of critical point.
+    """
 
     nucleus = "nucleus"  # (3, -3)
     bond = "bond"  # (3, -1)
@@ -250,6 +252,9 @@ class CriticalPointType(Enum):
 
 
 class CriticalPoint(MSONable):
+    """
+    Access information about a critical point and the field values at that point.
+    """
 
     def __init__(self, index, type, frac_coords, point_group,
                  multiplicity, field, field_gradient,
@@ -283,6 +288,9 @@ class CriticalPoint(MSONable):
 
     @property
     def type(self):
+        """
+        Returns: Instance of CriticalPointType
+        """
         return CriticalPointType(self._type)
 
     def __str__(self):
@@ -290,23 +298,29 @@ class CriticalPoint(MSONable):
 
     @property
     def laplacian(self):
+        """
+        Returns: The Laplacian of the field at the critical point
+        """
         return np.trace(self.field_hessian)
 
     @property
     def ellipticity(self):
-        '''
+        """
         Most meaningful for bond critical points,
         can be physically interpreted as e.g. degree
         of pi-bonding in organic molecules. Consult
         literature for more information.
-        :return:
-        '''
-        eig = np.linalg.eig(self.field_hessian)
+        Returns: The ellpiticity of the field at the critical point
+        """
+        eig, _ = np.linalg.eig(self.field_hessian)
         eig.sort()
         return eig[0]/eig[1] - 1
 
 
 class Critic2Output(MSONable):
+    """
+    Class to process the standard output from critic2.
+    """
 
     def __init__(self, structure, critic2_stdout):
         """
@@ -345,18 +359,42 @@ class Critic2Output(MSONable):
 
         self._parse_stdout(critic2_stdout)
 
-    def structure_graph(self, edge_weight="bond_length", edge_weight_units="Å"):
+    def structure_graph(self, edge_weight=None, edge_weight_units=None,
+                        include_critical_points=("bond", "ring", "cage")):
         """
         A StructureGraph object describing bonding information
         in the crystal. Lazily constructed.
-
-        :param edge_weight: a value to store on the Graph edges,
+        Args:
+            edge_weight: a value to store on the Graph edges,
             by default this is "bond_length" but other supported
             values are any of the attributes of CriticalPoint
-        :return:
+            edge_weight_units: optional metadata for
+            book-keeping (e.g. Å for "bond_length" edge weight)
+            include_critical_points: add DummySpecie for
+            the critical points themselves, a list of
+            "nucleus", "bond", "ring", "cage", set to None
+            to disable
+
+        Returns: a StructureGraph
         """
 
-        sg = StructureGraph.with_empty_graph(self.structure, name="bonds",
+        structure = self.structure.copy()
+
+        if include_critical_points:
+            # atoms themselves don't have field information
+            # so set to 0
+            for prop in ("ellipticity", "laplacian", "field"):
+                structure.add_site_property(prop, [0]*len(structure))
+            for idx, node in self.nodes.items():
+                cp = self.critical_points[node["unique_idx"]]
+                if cp.type.value in include_critical_points:
+                    specie = DummySpecie("{}cp".format(cp.type.value[0]), oxidation_state=None)
+                    structure.append(specie, node["frac_coords"],
+                                     properties={"ellipticity": cp.ellipticity,
+                                                 "laplacian": cp.laplacian,
+                                                 "field": cp.field})
+
+        sg = StructureGraph.with_empty_graph(structure, name="bonds",
                                              edge_weight_name=edge_weight,
                                              edge_weight_units=edge_weight_units)
 
@@ -397,9 +435,11 @@ class Critic2Output(MSONable):
 
                 if edge_weight == "bond_length":
                     weight = self.structure.get_distance(from_idx, to_idx, jimage=relative_lvec)
-                else:
+                elif edge_weight:
                     weight = getattr(self.critical_points[unique_idx],
                                      edge_weight, None)
+                else:
+                    weight = None
 
                 sg.add_edge(from_idx, to_idx,
                             from_jimage=from_lvec, to_jimage=to_lvec,
@@ -408,6 +448,12 @@ class Critic2Output(MSONable):
         return sg
 
     def get_critical_point_for_site(self, n):
+        """
+        Args:
+            n: Site index n
+
+        Returns: A CriticalPoint instance
+        """
         return self.critical_points[self.nodes[n]['unique_idx']]
 
     def _parse_stdout(self, stdout):
