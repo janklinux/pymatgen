@@ -4,6 +4,7 @@ from pymatgen.analysis.chemenv.utils.graph_utils import get_delta
 __author__ = 'waroquiers'
 
 from monty.json import MSONable
+from monty.json import jsanitize
 from pymatgen.analysis.chemenv.utils.chemenv_errors import ChemenvError
 import networkx as nx
 from networkx.algorithms.traversal import bfs_tree
@@ -285,10 +286,10 @@ class ConnectedComponent(MSONable):
                     if edge_data['delta'] == (0, 0, 0):
                         raise ValueError('There should not be self loops with delta image = (0, 0, 0).')
                     this_node_cell_img_vectors.append(edge_data['delta'])
-            ndeltas = len(this_node_cell_img_vectors)
+            for d1, d2 in itertools.combinations(this_node_cell_img_vectors, 2):
+                if d1 == d2 or d1 == tuple(-ii for ii in d2):
+                    raise ValueError('There should not be self loops with the same (or opposite) delta image.')
             this_node_cell_img_vectors = get_linearly_independent_vectors(this_node_cell_img_vectors)
-            if len(this_node_cell_img_vectors) != ndeltas:
-                raise ValueError('There should not be self loops with the same (or opposite) delta image.')
             # Here, we adopt a cutoff equal to the size of the graph, contrary to the default of networkX (size - 1),
             # because otherwise, the all_simple_paths algorithm fail when the source node is equal to the target node.
             paths = []
@@ -661,7 +662,7 @@ class ConnectedComponent(MSONable):
             dict: Edge data dictionary with the lists tranformed back into tuples when applicable.
         """
         edata['delta'] = tuple(edata['delta'])
-        edata['ligands'] = [tuple([lig[0], tuple(lig[1])])
+        edata['ligands'] = [tuple([lig[0], tuple(lig[1]), tuple(lig[2])])
                             for lig in edata['ligands']]
         return edata
 
@@ -684,7 +685,7 @@ class ConnectedComponent(MSONable):
                 new_dict_of_dicts[in1][in2] = {}
                 for ie, edge_data in edges_dict.items():
                     ied = self._edgekey_to_edgedictkey(ie)
-                    new_dict_of_dicts[in1][in2][ied] = edge_data
+                    new_dict_of_dicts[in1][in2][ied] = jsanitize(edge_data)
         return {"@module": self.__class__.__module__,
                 "@class": self.__class__.__name__,
                 "nodes": {strindex: (node.as_dict(), data) for strindex, (node, data) in nodes.items()},
