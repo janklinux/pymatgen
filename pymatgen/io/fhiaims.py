@@ -70,10 +70,9 @@ class Control(MSONable):
     def inital_moment(self):
         return self.structure.site_properties.get('initial_moment')
 
-    @selective_dynamics.setter
-    def selective_dynamics(self, selective_dynamics):
-        self.structure.add_site_property("selective_dynamics",
-                                         selective_dynamics)
+    # @selective_dynamics.setter
+    # def selective_dynamics(self, selective_dynamics):
+    #     self.structure.add_site_property("selective_dynamics", selective_dynamics)
 
     def from_file(self, filename):
         """"""
