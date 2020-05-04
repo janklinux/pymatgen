@@ -2315,9 +2315,8 @@ class IStructure(SiteCollection, MSONable):
                                 merge_tol=merge_tol)
         elif fnmatch(fname, "CTRL*"):
             return LMTOCtrl.from_file(filename=filename).structure
-        elif fnmatch(fname.lower(), "*.in")\
-            or fnmatch(fname.lower(), "*.next_step"):
-                return cls.from_str(contents, fmt="aims")
+        elif fnmatch(fname.lower(), "*.in") or fnmatch(fname.lower(), "*.next_step"):
+            return cls.from_str(contents, fmt="aims")
 
         else:
             raise ValueError("Unrecognized file extension!")
@@ -2825,11 +2824,10 @@ class IMolecule(SiteCollection, MSONable):
                     return yaml.safe_dump(self.as_dict(), f)
             else:
                 return yaml.safe_dump(self.as_dict())
-        elif fnmatch(fname, '*.in') \
-            or fnmatch(fname.lower(), "*.next_step"):
-                from pymatgen.io.fhiaims import Control
-                s = Control(self).write_file(fname)
-                return s
+        elif fnmatch(fname, '*.in') or fnmatch(fname.lower(), "*.next_step"):
+            from pymatgen.io.fhiaims import Control
+            s = Control(self).write_file(fname)
+            return s
 
         else:
             m = re.search(r"\.(pdb|mol|mdl|sdf|sd|ml2|sy2|mol2|cml|mrv)",
