@@ -1,6 +1,16 @@
 Change log
 ==========
 
+v2020.7.16
+----------
+* Bug fix for boltztrap2 spin support. (@fraricci)
+
+v2020.7.14
+----------
+* EwaldSummation is now MSONAble (@lbluque).
+* Fix for QChem freq parsing (@samblau)
+* Much improved linting and workflows.
+
 v2020.7.10
 ----------
 * Bug fix: serialization of slabs (@utf)
