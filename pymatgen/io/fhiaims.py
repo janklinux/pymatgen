@@ -2,6 +2,10 @@
 # Copyright (c) Pymatgen Development Team.
 # Distributed under the terms of the MIT License.
 
+"""
+Wrapper fir FHI-aims IO to geometry.in
+"""
+
 import re
 import logging
 
