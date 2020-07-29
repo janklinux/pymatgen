@@ -51,6 +51,12 @@ class Control(MSONable):
     """
 
     def __init__(self, structure, selective_dynamics=None, initial_moment=None):
+        """
+        the init class
+        :param structure: Structure
+        :param selective_dynamics: sel dyn args
+        :param initial_moment: spins
+        """
         if structure.is_ordered:
             site_properties = {}
             if selective_dynamics:
