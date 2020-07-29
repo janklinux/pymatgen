@@ -64,10 +64,18 @@ class Control(MSONable):
 
     @property
     def selective_dynamics(self):
+        """
+        Sets the arguments for selective dynamics runs
+        :return: the arguments for each atom
+        """
         return self.structure.site_properties.get('selective_dynamics')
 
     @property
     def inital_moment(self):
+        """
+        Sets the arguments for spin polarized runs
+        :return: list of spins for each atom
+        """
         return self.structure.site_properties.get('initial_moment')
 
     # @selective_dynamics.setter
@@ -75,7 +83,11 @@ class Control(MSONable):
     #     self.structure.add_site_property("selective_dynamics", selective_dynamics)
 
     def from_file(self, filename):
-        """"""
+        """
+        Reads structure from file
+        :param filename: input file
+        :return: Structure
+        """
         with open(filename, 'rt') as f:
             content = f.readlines()
         return self.from_string(''.join(content))
@@ -154,12 +166,11 @@ class Control(MSONable):
             else:
                 init_mom.append(0.)
 
-        print(init_mom)
-        print(len(name), len(atom), len(init_mom), len(constraint))
-        # quit()
+        # print(init_mom)
+        # print(len(name), len(atom), len(init_mom), len(constraint))
 
-        for a, b, c in zip(name, constraint, init_mom):
-            print(a, b, c)
+        # for a, b, c in zip(name, constraint, init_mom):
+        #     print(a, b, c)
 
         if is_periodic:
             lattice = Lattice(lat)
@@ -236,6 +247,10 @@ class Control(MSONable):
             f.write(self.get_string())
 
     def as_dict(self):
+        """
+        Returns dict() of class
+        :return: the dict
+        """
         return {"@module": self.__class__.__module__,
                 "@class": self.__class__.__name__,
                 "structure": self.structure.as_dict(),
@@ -243,4 +258,9 @@ class Control(MSONable):
 
     @classmethod
     def from_dict(cls, d):
+        """
+        Reads from dict
+        :param d: dict input
+        :return: structure
+        """
         return Structure.from_dict(d)
