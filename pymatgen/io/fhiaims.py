@@ -165,12 +165,12 @@ class Control(MSONable):
                     const_parsed = True
                 elif 'initial_moment ' in ch:
                     tmp_mom = float(ch.split()[1])
-                    print(name[-1], tmp_mom, tmp_con)
+                    # print(name[-1], tmp_mom, tmp_con)
                     initm_parsed = True
             if const_parsed:
                 constraint.append(tmp_con)
             else:
-                constraint.append([False, False, False])
+                constraint.append([True, True, True])
             if initm_parsed:
                 init_mom.append(tmp_mom)
             else:
