@@ -496,6 +496,22 @@ class Vasprun(MSONable):
         return [step["structure"] for step in self.ionic_steps]
 
     @property
+    def forces(self):
+        """
+        Returns:
+             List of forces for the ordered structure list from each ionic step.
+        """
+        return list(step['forces'] for step in self.ionic_steps)
+
+    @property
+    def stresses(self):
+        """
+        Returns:
+             List of stresses for the ordered structure list from each ionic step.
+        """
+        return list(step['stress'] for step in self.ionic_steps)
+
+    @property
     def epsilon_static(self):
         """
         Property only available for DFPT calculations.
@@ -1386,13 +1402,26 @@ class Vasprun(MSONable):
                 pass
         try:
             s = self._parse_structure(elem.find("structure"))
+            f = None
+            st = None
+            for va in elem.findall('varray'):
+                if va.attrib['name'] == 'forces':
+                    f = _parse_varray(va)
+                if va.attrib['name'] == 'stress':
+                    st = _parse_varray(va)
+
         except AttributeError:  # not all calculations have a structure
             s = None
+            f = None
+            st = None
             pass
+
         for va in elem.findall("varray"):
             istep[va.attrib["name"]] = _parse_varray(va)
         istep["electronic_steps"] = esteps
         istep["structure"] = s
+        # istep['fuckforces'] = f
+        # istep['fuckstress'] = st
         elem.clear()
         return istep
 
